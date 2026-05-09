@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Run</title>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const kb = params.get("kb") || localStorage.getItem("kgtool.current_kb") || "default";
+    const run = params.get("run");
+    const runs = params.get("runs");
+    if (run || runs) {
+      const next = new URL("./agent-run/", window.location.href);
+      next.searchParams.set("kb", kb);
+      if (run) next.searchParams.set("run", run);
+      if (runs) next.searchParams.set("runs", runs);
+      window.location.replace(next.href);
+    } else {
+      window.location.replace("./kb.html");
+    }
+  </script>
+</head>
+<body></body>
+</html>

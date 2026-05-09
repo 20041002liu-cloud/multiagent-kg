@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# Node
+agent-run/node_modules/
+agent-run/dist/
+
+# Data (large/sensitive)
+data/graph_store.json
+data/graph_store.bak_*
+data/graph_store.json.bak*
+data/extraction_cache.json
+data/extraction_cache.bak*
+data/extraction_cache.json.bak
+data/kb_store.json
+data/runtime.json
+data/documents/
+data/server*.log
+data/*_stderr.log
+data/*_stdout.log
+data/tmp_run_*.log
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db

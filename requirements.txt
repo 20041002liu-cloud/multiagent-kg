@@ -1,0 +1,15 @@
+fastapi>=0.100
+uvicorn>=0.23
+pydantic>=2.0
+pydantic-settings>=2.0
+sse-starlette>=1.6
+openai>=1.0
+httpx>=0.24
+faiss-cpu>=1.7
+numpy>=1.24
+neo4j>=5.0
+python-docx>=0.8
+pypdf>=3.0
+langgraph>=0.0
+jieba>=0.42
+sentence-transformers>=2.7

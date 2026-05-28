@@ -180,11 +180,24 @@ class OpenAICompatibleAdapter:
     def chat_json(self, system_prompt: str, user_prompt: str, fallback: dict[str, Any]) -> dict[str, Any]:
         if not self.enabled:
             return self._fallback(fallback, "disabled", "MODEL_BASE_URL is not configured.")
+        # Try chat_text with guided_json first (vllm / llama.cpp grammar)
         try:
             text = self.chat_text(system_prompt=system_prompt, user_prompt=user_prompt, json_mode=True)
         except Exception as exc:
             return self._fallback(fallback, "error", str(exc))
         parsed = _extract_json_block(text)
+        # If guided_json produced garbage, retry with raw text completion (more reliable)
+        if parsed is None:
+            raw = f"{system_prompt}\n\n{user_prompt}"
+            try:
+                text = self.chat_text_completion(
+                    system_prompt="", user_prompt="", raw_prompt=raw,
+                    max_tokens=self._settings.model_max_tokens,
+                )
+            except Exception as exc:
+                return self._fallback(fallback, "error", str(exc))
+            parsed = _extract_json_block(text)
+        # If still bad and was truncated, retry once more
         if parsed is None and self.last_finish_reason == "length":
             retry_prompt = (
                 user_prompt
@@ -199,6 +212,15 @@ class OpenAICompatibleAdapter:
                 )
             except Exception as exc:
                 return self._fallback(fallback, "error", str(exc))
+            if _extract_json_block(text) is None:
+                raw = f"{system_prompt}\n\n{retry_prompt}"
+                try:
+                    text = self.chat_text_completion(
+                        system_prompt="", user_prompt="", raw_prompt=raw,
+                        max_tokens=self._settings.model_max_tokens,
+                    )
+                except Exception as exc:
+                    return self._fallback(fallback, "error", str(exc))
             parsed = _extract_json_block(text)
         if parsed is None:
             return self._fallback(fallback, "parse_failed", "Model response was not valid JSON.", text)

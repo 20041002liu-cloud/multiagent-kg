@@ -130,16 +130,39 @@ class OpenAICompatibleAdapter:
     def chat_text(self, system_prompt: str, user_prompt: str, *, json_mode: bool = False, max_tokens: int | None = None) -> str:
         if not self.enabled or self._client is None:
             raise RuntimeError("Model adapter disabled because MODEL_BASE_URL is not configured.")
-        response = self._client.chat.completions.create(
-            model=self._settings.model_name,
-            temperature=self._settings.model_temperature,
-            max_tokens=max_tokens or self._settings.model_max_tokens,
-            extra_body={"grammar": JSON_GBNF} if json_mode else None,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-        )
+        if json_mode:
+            try:
+                response = self._client.chat.completions.create(
+                    model=self._settings.model_name,
+                    temperature=self._settings.model_temperature,
+                    max_tokens=max_tokens or self._settings.model_max_tokens,
+                    extra_body={"guided_json": {"type": "object"}},
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                )
+            except Exception:
+                response = self._client.chat.completions.create(
+                    model=self._settings.model_name,
+                    temperature=self._settings.model_temperature,
+                    max_tokens=max_tokens or self._settings.model_max_tokens,
+                    extra_body={"grammar": JSON_GBNF},
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                )
+        else:
+            response = self._client.chat.completions.create(
+                model=self._settings.model_name,
+                temperature=self._settings.model_temperature,
+                max_tokens=max_tokens or self._settings.model_max_tokens,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
         self.last_finish_reason = response.choices[0].finish_reason
         return response.choices[0].message.content or ""
 
